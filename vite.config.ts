@@ -3,7 +3,21 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
+function resolveBasePath() {
+  if (process.env.BASE_PATH) {
+    return process.env.BASE_PATH
+  }
+
+  const repository = process.env.GITHUB_REPOSITORY?.split('/')[1]
+  if (!process.env.GITHUB_ACTIONS || !repository || repository.endsWith('.github.io')) {
+    return '/'
+  }
+
+  return `/${repository}/`
+}
+
 export default defineConfig({
+  base: resolveBasePath(),
   define: {
     __COUNTDOWN_MINUTES__: JSON.stringify(process.env.MINUTES || '5'),
   },

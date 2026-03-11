@@ -135,6 +135,12 @@ npm run build
 
 Output is generated in the `dist/` directory for static deployment.
 
+## GitHub Pages deployment
+
+This repo includes a GitHub Actions workflow at `.github/workflows/deploy.yml` that builds and deploys the site to GitHub Pages on every push to `main`.
+
+For the first deployment, enable GitHub Pages in the repository settings and set the source to `GitHub Actions`.
+
 ## Tech Stack
 
 - React 18
