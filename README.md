@@ -16,7 +16,7 @@ Customize the timer via query parameters:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `minutes` | Countdown duration in minutes | `5` |
-| `font`    | Font family (local or Google Font) | `DIN Alternate` |
+| `font`    | Hosted font family loaded at runtime | `Rajdhani` |
 
 ## Examples
 
@@ -42,9 +42,9 @@ http://localhost:5173/?minutes=30
 http://localhost:5173/?minutes=90
 ```
 
-### Google Fonts
+### Hosted fonts
 
-Any [Google Font](https://fonts.google.com/) can be loaded dynamically via the `font` parameter:
+The built-in font picker uses hosted web fonts so every visitor gets the same result. These are loaded at runtime from [Google Fonts](https://fonts.google.com/):
 
 ```
 # Orbitron - geometric, space-age
@@ -78,29 +78,14 @@ http://localhost:5173/?font=Black Ops One
 http://localhost:5173/?font=Bungee
 ```
 
-### Local system fonts (no network needed)
+### Default font
 
 ```
-# DIN Alternate (default) - industrial, technical
+# Rajdhani (default) - clean, techy
 http://localhost:5173/
-
-# Futura - geometric, classic
-http://localhost:5173/?font=Futura
-
-# Avenir Next Condensed - clean, compact
-http://localhost:5173/?font=Avenir Next Condensed
-
-# Helvetica Neue - crisp, neutral
-http://localhost:5173/?font=Helvetica Neue
 
 # JetBrains Mono - monospace, no digit jitter
 http://localhost:5173/?font=JetBrains Mono
-
-# Courier New - classic monospace
-http://localhost:5173/?font=Courier New
-
-# Impact - bold, heavy
-http://localhost:5173/?font=Impact
 ```
 
 ### Combining parameters

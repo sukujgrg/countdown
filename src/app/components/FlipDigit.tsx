@@ -5,7 +5,7 @@ interface FlipDigitProps {
   fontFamily?: string;
 }
 
-export function FlipDigit({ digit, fontFamily = 'DIN Alternate' }: FlipDigitProps) {
+export function FlipDigit({ digit, fontFamily = 'Rajdhani' }: FlipDigitProps) {
   const [prevDigit, setPrevDigit] = useState(digit);
   const [isAnimating, setIsAnimating] = useState(false);
 

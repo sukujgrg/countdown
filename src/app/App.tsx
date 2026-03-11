@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FlipDigit } from './components/FlipDigit';
 
+type FontOption = {
+  value: string;
+  label: string;
+};
+
 const presets = [
   { minutes: 1, label: '1 min' },
   { minutes: 2, label: '2 min' },
@@ -12,16 +17,14 @@ const presets = [
   { minutes: 60, label: '60 min' },
 ];
 
-const fonts = [
-  { value: '', label: 'DIN Alternate (default)', local: true },
-  { value: 'Futura', label: 'Futura', local: true },
-  { value: 'JetBrains Mono', label: 'JetBrains Mono', local: true },
-  { value: 'Helvetica Neue', label: 'Helvetica Neue', local: true },
+const fonts: FontOption[] = [
+  { value: 'Rajdhani', label: 'Rajdhani (default)' },
+  { value: 'JetBrains Mono', label: 'JetBrains Mono' },
   { value: 'Orbitron', label: 'Orbitron' },
   { value: 'Chakra Petch', label: 'Chakra Petch' },
   { value: 'Audiowide', label: 'Audiowide' },
   { value: 'Oxanium', label: 'Oxanium' },
-  { value: 'Rajdhani', label: 'Rajdhani' },
+  { value: 'Space Grotesk', label: 'Space Grotesk' },
   { value: 'Michroma', label: 'Michroma' },
   { value: 'Press Start 2P', label: 'Press Start 2P' },
   { value: 'Share Tech Mono', label: 'Share Tech Mono' },
@@ -29,20 +32,62 @@ const fonts = [
   { value: 'Bungee', label: 'Bungee' },
 ];
 
+const DEFAULT_FONT_FAMILY = fonts[0].value;
+
+function getFontStyle(fontFamily: string) {
+  return { fontFamily: `"${fontFamily}", sans-serif` };
+}
+
+function buildHostedFontUrl(fontFamily: string) {
+  return `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;700;900&display=swap`;
+}
+
+function useHostedFonts(fontFamilies: string[]) {
+  const familiesKey = fontFamilies.filter(Boolean).join('|');
+
+  useEffect(() => {
+    const uniqueFamilies = [...new Set(familiesKey.split('|').filter(Boolean))];
+    const createdLinks: HTMLLinkElement[] = [];
+
+    uniqueFamilies.forEach((fontFamily) => {
+      const selector = `link[data-countdown-font="${fontFamily}"]`;
+      if (document.head.querySelector(selector)) {
+        return;
+      }
+
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = buildHostedFontUrl(fontFamily);
+      link.dataset.countdownFont = fontFamily;
+      document.head.appendChild(link);
+      createdLinks.push(link);
+    });
+
+    return () => {
+      createdLinks.forEach((link) => {
+        document.head.removeChild(link);
+      });
+    };
+  }, [familiesKey]);
+}
+
 function buildUrl(minutes: number, font: string) {
   const params = new URLSearchParams();
   params.set('minutes', String(minutes));
-  if (font) params.set('font', font);
+  params.set('font', font);
   return `${window.location.pathname}?${params.toString()}`;
 }
 
 function LandingPage() {
   const [selectedMinutes, setSelectedMinutes] = useState(5);
   const [customMinutes, setCustomMinutes] = useState('');
-  const [selectedFont, setSelectedFont] = useState('');
+  const [selectedFont, setSelectedFont] = useState(DEFAULT_FONT_FAMILY);
 
   const minutes = customMinutes ? Number(customMinutes) : selectedMinutes;
   const launchUrl = buildUrl(minutes, selectedFont);
+  const uiFontStyle = getFontStyle(DEFAULT_FONT_FAMILY);
+
+  useHostedFonts([DEFAULT_FONT_FAMILY]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -72,17 +117,17 @@ function LandingPage() {
         {/* Title */}
         <h1
           className="text-5xl md:text-7xl mb-4 text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500"
-          style={{ fontFamily: '"DIN Alternate", sans-serif', fontWeight: 900 }}
+          style={{ ...uiFontStyle, fontWeight: 900 }}
         >
           COUNTDOWN
         </h1>
-        <p className="text-cyan-400/50 text-center mb-12 text-sm tracking-widest uppercase" style={{ fontFamily: '"DIN Alternate", sans-serif' }}>
+        <p className="text-cyan-400/50 text-center mb-12 text-sm tracking-widest uppercase" style={uiFontStyle}>
           Configure your timer
         </p>
 
         {/* Duration */}
         <div className="mb-10">
-          <h2 className="text-cyan-400/80 text-xs uppercase tracking-widest mb-4" style={{ fontFamily: '"DIN Alternate", sans-serif' }}>Duration</h2>
+          <h2 className="text-cyan-400/80 text-xs uppercase tracking-widest mb-4" style={uiFontStyle}>Duration</h2>
           <div className="grid grid-cols-4 gap-3 mb-4">
             {presets.map((p) => (
               <button
@@ -93,14 +138,14 @@ function LandingPage() {
                     ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
                     : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-cyan-400/30 hover:text-cyan-400/80'
                 }`}
-                style={{ fontFamily: '"DIN Alternate", sans-serif' }}
+                style={uiFontStyle}
               >
                 {p.label}
               </button>
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-slate-500 text-sm" style={{ fontFamily: '"DIN Alternate", sans-serif' }}>or</span>
+            <span className="text-slate-500 text-sm" style={uiFontStyle}>or</span>
             <input
               type="number"
               min="1"
@@ -109,28 +154,27 @@ function LandingPage() {
               value={customMinutes}
               onChange={(e) => setCustomMinutes(e.target.value)}
               className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-cyan-300 text-sm placeholder-slate-600 outline-none focus:border-cyan-400/60 focus:shadow-[0_0_15px_rgba(34,211,238,0.15)] transition-all"
-              style={{ fontFamily: '"DIN Alternate", sans-serif' }}
+              style={uiFontStyle}
             />
           </div>
         </div>
 
         {/* Font */}
         <div className="mb-12">
-          <h2 className="text-cyan-400/80 text-xs uppercase tracking-widest mb-4" style={{ fontFamily: '"DIN Alternate", sans-serif' }}>Font</h2>
+          <h2 className="text-cyan-400/80 text-xs uppercase tracking-widest mb-4" style={uiFontStyle}>Font</h2>
           <div className="grid grid-cols-2 gap-3">
             {fonts.map((f) => (
               <button
-                key={f.value}
+                key={`${f.value}-${f.label}`}
                 onClick={() => setSelectedFont(f.value)}
                 className={`py-3 px-4 rounded-xl text-sm text-left transition-all border ${
                   selectedFont === f.value
                     ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
                     : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-cyan-400/30 hover:text-cyan-400/80'
                 }`}
-                style={{ fontFamily: '"DIN Alternate", sans-serif' }}
+                style={uiFontStyle}
               >
                 {f.label}
-                {f.local && <span className="ml-2 text-xs text-slate-600">local</span>}
               </button>
             ))}
           </div>
@@ -140,7 +184,7 @@ function LandingPage() {
         <a
           href={launchUrl}
           className="block w-full py-4 rounded-2xl text-center text-lg font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:shadow-[0_0_40px_rgba(34,211,238,0.5)] transition-all hover:scale-[1.02] active:scale-[0.98]"
-          style={{ fontFamily: '"DIN Alternate", sans-serif' }}
+          style={uiFontStyle}
         >
           START {minutes} MINUTE{minutes !== 1 ? 'S' : ''} COUNTDOWN
         </a>
@@ -158,20 +202,14 @@ function CountdownTimer() {
   const params = new URLSearchParams(window.location.search);
   const queryMinutes = params.get('minutes');
   const initialMinutes = queryMinutes ? Number(queryMinutes) : (Number((__COUNTDOWN_MINUTES__ as string)) || 5);
-  const fontFamily = params.get('font') || 'DIN Alternate';
-  const fontStyle = { fontFamily: `"${fontFamily}", sans-serif` };
+  const fontFamily = params.get('font') || DEFAULT_FONT_FAMILY;
+  const fontStyle = getFontStyle(fontFamily);
+  const uiFontStyle = getFontStyle(DEFAULT_FONT_FAMILY);
   const initialSeconds = initialMinutes * 60;
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
   const [isActive, setIsActive] = useState(true);
 
-  useEffect(() => {
-    if (!params.get('font')) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;700;900&display=swap`;
-    document.head.appendChild(link);
-    return () => { document.head.removeChild(link); };
-  }, [fontFamily]);
+  useHostedFonts([DEFAULT_FONT_FAMILY, fontFamily]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -403,7 +441,7 @@ function CountdownTimer() {
       <a
         href={window.location.pathname}
         className="absolute top-6 left-6 z-20 text-cyan-400/50 hover:text-cyan-400 transition-colors text-sm flex items-center gap-2"
-        style={{ fontFamily: '"DIN Alternate", sans-serif' }}
+        style={uiFontStyle}
       >
         <span>&larr;</span> Back
       </a>
