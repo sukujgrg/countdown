@@ -1,0 +1,151 @@
+# Countdown Timer
+
+A cyberpunk-themed countdown timer built with React, Vite, and Tailwind CSS. Features animated flip digits, glowing backgrounds, and rotating rings.
+
+## Setup
+
+```bash
+npm install
+npm run dev
+```
+
+## URL Parameters
+
+Customize the timer via query parameters:
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `minutes` | Countdown duration in minutes | `5` |
+| `font`    | Font family (local or Google Font) | `DIN Alternate` |
+
+## Examples
+
+### Basic usage (5-minute default)
+
+```
+http://localhost:5173/
+```
+
+### Custom duration
+
+```
+# 10-minute countdown
+http://localhost:5173/?minutes=10
+
+# 1-minute countdown
+http://localhost:5173/?minutes=1
+
+# 30-minute countdown
+http://localhost:5173/?minutes=30
+
+# 90-minute countdown
+http://localhost:5173/?minutes=90
+```
+
+### Google Fonts
+
+Any [Google Font](https://fonts.google.com/) can be loaded dynamically via the `font` parameter:
+
+```
+# Orbitron - geometric, space-age
+http://localhost:5173/?font=Orbitron
+
+# Chakra Petch - cyberpunk, angular
+http://localhost:5173/?font=Chakra Petch
+
+# Audiowide - retro-futuristic
+http://localhost:5173/?font=Audiowide
+
+# Oxanium - digital, gaming
+http://localhost:5173/?font=Oxanium
+
+# Rajdhani - clean, techy
+http://localhost:5173/?font=Rajdhani
+
+# Michroma - wide, space-age
+http://localhost:5173/?font=Michroma
+
+# Press Start 2P - pixel/retro
+http://localhost:5173/?font=Press Start 2P
+
+# Share Tech Mono - monospace, terminal
+http://localhost:5173/?font=Share Tech Mono
+
+# Black Ops One - military/tactical
+http://localhost:5173/?font=Black Ops One
+
+# Bungee - bold, display
+http://localhost:5173/?font=Bungee
+```
+
+### Local system fonts (no network needed)
+
+```
+# DIN Alternate (default) - industrial, technical
+http://localhost:5173/
+
+# Futura - geometric, classic
+http://localhost:5173/?font=Futura
+
+# Avenir Next Condensed - clean, compact
+http://localhost:5173/?font=Avenir Next Condensed
+
+# Helvetica Neue - crisp, neutral
+http://localhost:5173/?font=Helvetica Neue
+
+# JetBrains Mono - monospace, no digit jitter
+http://localhost:5173/?font=JetBrains Mono
+
+# Courier New - classic monospace
+http://localhost:5173/?font=Courier New
+
+# Impact - bold, heavy
+http://localhost:5173/?font=Impact
+```
+
+### Combining parameters
+
+```
+# 15-minute timer with Orbitron font
+http://localhost:5173/?minutes=15&font=Orbitron
+
+# 2-minute timer with pixel font
+http://localhost:5173/?minutes=2&font=Press Start 2P
+
+# 45-minute timer with monospace font
+http://localhost:5173/?minutes=45&font=JetBrains Mono
+
+# 10-minute timer with cyberpunk font
+http://localhost:5173/?minutes=10&font=Chakra Petch
+```
+
+## Build-time configuration
+
+Set the default minutes via the `MINUTES` environment variable at build time:
+
+```bash
+MINUTES=10 npm run build
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+Output is generated in the `dist/` directory for static deployment.
+
+## Tech Stack
+
+- React 18
+- Vite 6
+- Tailwind CSS 4
+- TypeScript
+
+## Attribution
+
+Originally generated from [Figma Make](https://www.figma.com/design/kahpRoVRYtnFZn6rrx6SuA/Countdown-Timer-Animation). See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for third-party licenses.
+
+## License
+
+MIT
