@@ -35,9 +35,19 @@ const fonts: FontOption[] = [
 
 const DEFAULT_FONT_FAMILY = fonts[0].value;
 const DEFAULT_TITLE = 'COUNTDOWN';
+const DEFAULT_DOCUMENT_TITLE = 'Countdown Timer';
 
 function getFontStyle(fontFamily: string) {
   return { fontFamily: `"${fontFamily}", sans-serif` };
+}
+
+function buildDocumentTitle(title: string, minutes: number, font: string, hasAudio: boolean) {
+  const parts = [title || DEFAULT_TITLE, `${minutes}m`, font];
+  if (hasAudio) {
+    parts.push('local audio');
+  }
+
+  return `${parts.join(' · ')} | ${DEFAULT_DOCUMENT_TITLE}`;
 }
 
 function buildHostedFontUrl(fontFamily: string) {
@@ -98,6 +108,7 @@ function LandingPage({ backgroundAudio, onStart }: LandingPageProps) {
   const [selectedTitle, setSelectedTitle] = useState(DEFAULT_TITLE);
   const [isStarting, setIsStarting] = useState(false);
   const [isUpdatingAudio, setIsUpdatingAudio] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
   const [launchError, setLaunchError] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -106,6 +117,10 @@ function LandingPage({ backgroundAudio, onStart }: LandingPageProps) {
   const uiFontStyle = getFontStyle(DEFAULT_FONT_FAMILY);
 
   useHostedFonts(fonts.map((font) => font.value));
+
+  useEffect(() => {
+    document.title = buildDocumentTitle(selectedTitle.trim() || DEFAULT_TITLE, minutes, selectedFont, backgroundAudio.hasAudio);
+  }, [backgroundAudio.hasAudio, minutes, selectedFont, selectedTitle]);
 
   useEffect(() => {
     if (backgroundAudio.error) {
@@ -137,6 +152,7 @@ function LandingPage({ backgroundAudio, onStart }: LandingPageProps) {
 
   const handleAudioSelection = async (file: File | null) => {
     setLaunchError('');
+    setCopyStatus('idle');
     setIsUpdatingAudio(true);
 
     try {
@@ -149,6 +165,15 @@ function LandingPage({ backgroundAudio, onStart }: LandingPageProps) {
       setLaunchError(error instanceof Error ? error.message : 'Unable to update the saved audio file.');
     } finally {
       setIsUpdatingAudio(false);
+    }
+  };
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(launchUrl);
+      setCopyStatus('copied');
+    } catch {
+      setCopyStatus('error');
     }
   };
 
@@ -325,9 +350,24 @@ function LandingPage({ backgroundAudio, onStart }: LandingPageProps) {
         )}
 
         {/* Preview URL */}
-        <p className="mt-4 text-center text-xs text-slate-600 break-all" style={{ fontFamily: 'monospace' }}>
-          {launchUrl}
-        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+          <p className="max-w-full text-center text-xs leading-8 text-slate-600 break-all" style={{ fontFamily: 'monospace' }}>
+            {launchUrl}
+          </p>
+          <button
+            type="button"
+            onClick={() => { void handleCopyUrl(); }}
+            className="shrink-0 rounded-lg border border-slate-700/60 bg-slate-900/70 px-3 py-1 text-xs text-cyan-300 transition-colors hover:border-cyan-400/50 hover:bg-slate-800/80"
+            style={uiFontStyle}
+          >
+            Copy URL
+          </button>
+        </div>
+        {copyStatus !== 'idle' && (
+          <p className={`mt-2 text-center text-xs ${copyStatus === 'copied' ? 'text-cyan-400/70' : 'text-rose-400'}`} style={uiFontStyle}>
+            {copyStatus === 'copied' ? 'URL copied.' : 'Unable to copy URL.'}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -387,6 +427,10 @@ function CountdownTimer({ backgroundAudio, search, onNavigateHome }: CountdownTi
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
+
+  useEffect(() => {
+    document.title = buildDocumentTitle(title, initialMinutes, fontFamily, hasLocalSound);
+  }, [fontFamily, hasLocalSound, initialMinutes, title]);
 
   const minuteTens = Math.floor(minutes / 10).toString();
   const minuteOnes = (minutes % 10).toString();
