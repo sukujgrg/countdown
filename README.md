@@ -2,6 +2,8 @@
 
 A cyberpunk-themed countdown timer built with React, Vite, and Tailwind CSS. Features animated flip digits, glowing backgrounds, and rotating rings.
 
+Live demo: [https://sukujgrg.github.io/countdown/](https://sukujgrg.github.io/countdown/)
+
 ## Setup
 
 ```bash
