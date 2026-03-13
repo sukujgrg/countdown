@@ -1,14 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { FlipDigit } from './components/FlipDigit';
+import { type PersistedBackgroundAudio, usePersistedBackgroundAudio } from './hooks/usePersistedBackgroundAudio';
 
 type FontOption = {
   value: string;
   label: string;
 };
-
-const LOCAL_SOUND_STORAGE_KEY = 'countdown-local-sound';
-let preparedLocalAudio: HTMLAudioElement | null = null;
-let preparedLocalAudioUrl: string | null = null;
 
 const presets = [
   { minutes: 1, label: '1 min' },
@@ -76,91 +73,6 @@ function useHostedFonts(fontFamilies: string[]) {
   }, [familiesKey]);
 }
 
-function createLocalSoundDatabase() {
-  return new Promise<IDBDatabase>((resolve, reject) => {
-    const request = window.indexedDB.open('countdown-local-audio', 1);
-
-    request.onupgradeneeded = () => {
-      request.result.createObjectStore('files');
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('Unable to open audio database.'));
-  });
-}
-
-async function saveLocalSoundFile(file: File) {
-  const database = await createLocalSoundDatabase();
-
-  await new Promise<void>((resolve, reject) => {
-    const transaction = database.transaction('files', 'readwrite');
-    const store = transaction.objectStore('files');
-    store.put(file, LOCAL_SOUND_STORAGE_KEY);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error('Unable to save the selected audio file.'));
-  });
-
-  database.close();
-}
-
-async function readLocalSoundFile() {
-  const database = await createLocalSoundDatabase();
-
-  const file = await new Promise<File | null>((resolve, reject) => {
-    const transaction = database.transaction('files', 'readonly');
-    const store = transaction.objectStore('files');
-    const request = store.get(LOCAL_SOUND_STORAGE_KEY);
-    request.onsuccess = () => resolve((request.result as File | undefined) ?? null);
-    request.onerror = () => reject(request.error ?? new Error('Unable to read the selected audio file.'));
-  });
-
-  database.close();
-  return file;
-}
-
-async function clearLocalSoundFile() {
-  const database = await createLocalSoundDatabase();
-
-  await new Promise<void>((resolve, reject) => {
-    const transaction = database.transaction('files', 'readwrite');
-    const store = transaction.objectStore('files');
-    store.delete(LOCAL_SOUND_STORAGE_KEY);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error('Unable to clear the selected audio file.'));
-  });
-
-  database.close();
-}
-
-function clearPreparedLocalAudio() {
-  preparedLocalAudio?.pause();
-  if (preparedLocalAudio) {
-    preparedLocalAudio.currentTime = 0;
-  }
-  if (preparedLocalAudioUrl) {
-    URL.revokeObjectURL(preparedLocalAudioUrl);
-  }
-  preparedLocalAudio = null;
-  preparedLocalAudioUrl = null;
-}
-
-async function prepareLocalAudioPlayback(file: File) {
-  clearPreparedLocalAudio();
-
-  const audioUrl = URL.createObjectURL(file);
-  const audio = new Audio(audioUrl);
-  audio.loop = true;
-  preparedLocalAudio = audio;
-  preparedLocalAudioUrl = audioUrl;
-
-  try {
-    await audio.play();
-  } catch {
-    // Ignore autoplay failures here; the timer will retry if needed.
-  }
-
-  return audio;
-}
-
 function buildUrl(minutes: number, font: string, title: string, useLocalSound: boolean) {
   const params = new URLSearchParams();
   params.set('minutes', String(minutes));
@@ -175,52 +87,31 @@ function buildUrl(minutes: number, font: string, title: string, useLocalSound: b
 }
 
 type LandingPageProps = {
+  backgroundAudio: PersistedBackgroundAudio;
   onStart: (search: string) => void;
 };
 
-function LandingPage({ onStart }: LandingPageProps) {
+function LandingPage({ backgroundAudio, onStart }: LandingPageProps) {
   const [selectedMinutes, setSelectedMinutes] = useState(5);
   const [customMinutes, setCustomMinutes] = useState('');
   const [selectedFont, setSelectedFont] = useState(DEFAULT_FONT_FAMILY);
   const [selectedTitle, setSelectedTitle] = useState(DEFAULT_TITLE);
-  const [localAudioFile, setLocalAudioFile] = useState<File | null>(null);
   const [isStarting, setIsStarting] = useState(false);
-  const [isLoadingStoredAudio, setIsLoadingStoredAudio] = useState(true);
+  const [isUpdatingAudio, setIsUpdatingAudio] = useState(false);
   const [launchError, setLaunchError] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const minutes = customMinutes ? Number(customMinutes) : selectedMinutes;
-  const launchUrl = buildUrl(minutes, selectedFont, selectedTitle.trim() || DEFAULT_TITLE, localAudioFile !== null);
+  const launchUrl = buildUrl(minutes, selectedFont, selectedTitle.trim() || DEFAULT_TITLE, backgroundAudio.hasAudio);
   const uiFontStyle = getFontStyle(DEFAULT_FONT_FAMILY);
 
   useHostedFonts(fonts.map((font) => font.value));
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadStoredAudio = async () => {
-      try {
-        const storedFile = await readLocalSoundFile();
-        if (!cancelled) {
-          setLocalAudioFile(storedFile);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setLaunchError(error instanceof Error ? error.message : 'Unable to restore the saved audio file.');
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingStoredAudio(false);
-        }
-      }
-    };
-
-    void loadStoredAudio();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (backgroundAudio.error) {
+      setLaunchError(backgroundAudio.error);
+    }
+  }, [backgroundAudio.error]);
 
   const handleStart = async () => {
     if (isStarting) {
@@ -231,18 +122,33 @@ function LandingPage({ onStart }: LandingPageProps) {
     setIsStarting(true);
 
     try {
-      if (localAudioFile) {
-        await prepareLocalAudioPlayback(localAudioFile);
-        await saveLocalSoundFile(localAudioFile);
+      if (backgroundAudio.hasAudio) {
+        await backgroundAudio.playFromStart();
       } else {
-        await clearLocalSoundFile();
-        clearPreparedLocalAudio();
+        backgroundAudio.pause(true);
       }
 
       onStart(new URL(launchUrl, window.location.origin).search);
     } catch (error) {
       setLaunchError(error instanceof Error ? error.message : 'Unable to prepare the selected audio file.');
       setIsStarting(false);
+    }
+  };
+
+  const handleAudioSelection = async (file: File | null) => {
+    setLaunchError('');
+    setIsUpdatingAudio(true);
+
+    try {
+      if (file) {
+        await backgroundAudio.replaceAudio(file);
+      } else {
+        await backgroundAudio.clearAudio();
+      }
+    } catch (error) {
+      setLaunchError(error instanceof Error ? error.message : 'Unable to update the saved audio file.');
+    } finally {
+      setIsUpdatingAudio(false);
     }
   };
 
@@ -364,8 +270,7 @@ function LandingPage({ onStart }: LandingPageProps) {
               accept="audio/*"
               onChange={(event) => {
                 const file = event.target.files?.[0] ?? null;
-                setLocalAudioFile(file);
-                setLaunchError('');
+                void handleAudioSelection(file);
               }}
               className="hidden"
             />
@@ -376,17 +281,16 @@ function LandingPage({ onStart }: LandingPageProps) {
                 className="rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-2 text-cyan-300 transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/20"
                 style={uiFontStyle}
               >
-                {localAudioFile ? 'Replace File' : 'Choose File'}
+                {backgroundAudio.hasAudio ? 'Replace File' : 'Choose File'}
               </button>
-              {localAudioFile && (
+              {backgroundAudio.hasAudio && (
                 <button
                   type="button"
                   onClick={() => {
-                    setLocalAudioFile(null);
-                    setLaunchError('');
                     if (fileInputRef.current) {
                       fileInputRef.current.value = '';
                     }
+                    void handleAudioSelection(null);
                   }}
                   className="rounded-xl border border-slate-600/50 bg-slate-800/60 px-4 py-2 text-slate-300 transition-colors hover:border-slate-500/70 hover:bg-slate-700/70"
                   style={uiFontStyle}
@@ -395,11 +299,11 @@ function LandingPage({ onStart }: LandingPageProps) {
                 </button>
               )}
               <span className="text-sm text-slate-400" style={uiFontStyle}>
-                {localAudioFile ? localAudioFile.name : 'No file selected'}
+                {backgroundAudio.fileName ?? 'No file selected'}
               </span>
             </div>
             <p className="mt-3 text-xs text-slate-500" style={uiFontStyle}>
-              {localAudioFile ? `Selected: ${localAudioFile.name}` : 'Optional. If selected, it will loop during the countdown and stop when the timer ends.'}
+              {backgroundAudio.fileName ? `Selected: ${backgroundAudio.fileName}` : 'Optional. If selected, it will loop during the countdown and stop when the timer ends.'}
             </p>
           </div>
         </div>
@@ -410,9 +314,9 @@ function LandingPage({ onStart }: LandingPageProps) {
           onClick={() => { void handleStart(); }}
           className="block w-full py-4 rounded-2xl text-center text-lg font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:shadow-[0_0_40px_rgba(34,211,238,0.5)] transition-all hover:scale-[1.02] active:scale-[0.98]"
           style={uiFontStyle}
-          disabled={isStarting || isLoadingStoredAudio}
+          disabled={isStarting || isUpdatingAudio || !backgroundAudio.isReady}
         >
-          {isLoadingStoredAudio ? 'LOADING AUDIO...' : isStarting ? 'PREPARING...' : `START ${minutes} MINUTE${minutes !== 1 ? 'S' : ''} COUNTDOWN`}
+          {!backgroundAudio.isReady ? 'LOADING AUDIO...' : isUpdatingAudio ? 'SAVING AUDIO...' : isStarting ? 'PREPARING...' : `START ${minutes} MINUTE${minutes !== 1 ? 'S' : ''} COUNTDOWN`}
         </button>
         {launchError && (
           <p className="mt-4 text-center text-sm text-rose-400" style={uiFontStyle}>
@@ -430,24 +334,23 @@ function LandingPage({ onStart }: LandingPageProps) {
 }
 
 type CountdownTimerProps = {
+  backgroundAudio: PersistedBackgroundAudio;
   search: string;
   onNavigateHome: () => void;
 };
 
-function CountdownTimer({ search, onNavigateHome }: CountdownTimerProps) {
+function CountdownTimer({ backgroundAudio, search, onNavigateHome }: CountdownTimerProps) {
   const params = new URLSearchParams(search);
   const queryMinutes = params.get('minutes');
   const initialMinutes = queryMinutes ? Number(queryMinutes) : (Number((__COUNTDOWN_MINUTES__ as string)) || 5);
   const fontFamily = params.get('font') || DEFAULT_FONT_FAMILY;
   const title = params.get('title') || DEFAULT_TITLE;
-  const hasLocalSound = params.get('sound') === 'local-file';
+  const hasLocalSound = params.get('sound') === 'local-file' && backgroundAudio.hasAudio;
   const fontStyle = getFontStyle(fontFamily);
   const uiFontStyle = getFontStyle(DEFAULT_FONT_FAMILY);
   const initialSeconds = initialMinutes * 60;
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
   const [isActive, setIsActive] = useState(true);
-  const localAudioRef = useRef<HTMLAudioElement | null>(null);
-  const localAudioUrlRef = useRef<string | null>(null);
 
   useHostedFonts([DEFAULT_FONT_FAMILY, fontFamily]);
 
@@ -468,90 +371,19 @@ function CountdownTimer({ search, onNavigateHome }: CountdownTimerProps) {
   }, [isActive, timeLeft]);
 
   useEffect(() => {
-    if (!hasLocalSound) {
-      localAudioRef.current?.pause();
-      if (localAudioUrlRef.current) {
-        URL.revokeObjectURL(localAudioUrlRef.current);
-        localAudioUrlRef.current = null;
-      }
-      localAudioRef.current = null;
+    if (!backgroundAudio.isReady) {
       return;
     }
 
-    let cancelled = false;
-
-    const loadLocalAudio = async () => {
-      if (preparedLocalAudio) {
-        localAudioRef.current = preparedLocalAudio;
-        if (isActive && timeLeft > 0) {
-          try {
-            await preparedLocalAudio.play();
-          } catch {
-            // Ignore autoplay failures; the timer can continue without audio.
-          }
-        }
-        return;
-      }
-
-      const file = await readLocalSoundFile();
-      if (!file || cancelled) {
-        return;
-      }
-
-      if (localAudioUrlRef.current) {
-        URL.revokeObjectURL(localAudioUrlRef.current);
-      }
-
-      const audioUrl = URL.createObjectURL(file);
-      const audio = new Audio(audioUrl);
-      audio.loop = true;
-      localAudioUrlRef.current = audioUrl;
-      localAudioRef.current = audio;
-
-      if (isActive && timeLeft > 0) {
-        try {
-          await audio.play();
-        } catch {
-          // Ignore autoplay failures; the timer can continue without audio.
-        }
-      }
-    };
-
-    void loadLocalAudio();
-
-    return () => {
-      cancelled = true;
-      localAudioRef.current?.pause();
-      if (localAudioRef.current === preparedLocalAudio) {
-        preparedLocalAudio.currentTime = 0;
-      }
-      if (localAudioUrlRef.current) {
-        URL.revokeObjectURL(localAudioUrlRef.current);
-        localAudioUrlRef.current = null;
-      }
-      localAudioRef.current = null;
-    };
-  }, [hasLocalSound]);
-
-  useEffect(() => {
-    if (!hasLocalSound || !localAudioRef.current) {
-      return;
-    }
-
-    const audio = localAudioRef.current;
-
-    if (isActive && timeLeft > 0) {
-      void audio.play().catch(() => {
+    if (hasLocalSound && isActive && timeLeft > 0) {
+      void backgroundAudio.ensurePlaying().catch(() => {
         // Ignore autoplay failures; the timer can continue without audio.
       });
       return;
     }
 
-    audio.pause();
-    if (timeLeft === 0) {
-      audio.currentTime = 0;
-    }
-  }, [hasLocalSound, isActive, timeLeft]);
+    backgroundAudio.pause(timeLeft === 0);
+  }, [backgroundAudio, hasLocalSound, isActive, timeLeft]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -562,10 +394,7 @@ function CountdownTimer({ search, onNavigateHome }: CountdownTimerProps) {
   const secondOnes = (seconds % 10).toString();
 
   const handleReset = () => {
-    localAudioRef.current?.pause();
-    if (localAudioRef.current) {
-      localAudioRef.current.currentTime = 0;
-    }
+    backgroundAudio.pause(true);
     setTimeLeft(initialSeconds);
     setIsActive(true);
   };
@@ -770,7 +599,10 @@ function CountdownTimer({ search, onNavigateHome }: CountdownTimerProps) {
       {/* Back button */}
       <button
         type="button"
-        onClick={onNavigateHome}
+        onClick={() => {
+          backgroundAudio.pause(true);
+          onNavigateHome();
+        }}
         className="absolute top-6 left-6 z-20 text-cyan-400/50 hover:text-cyan-400 transition-colors text-sm flex items-center gap-2"
         style={uiFontStyle}
       >
@@ -814,6 +646,7 @@ function CountdownTimer({ search, onNavigateHome }: CountdownTimerProps) {
 }
 
 function App() {
+  const backgroundAudio = usePersistedBackgroundAudio();
   const [search, setSearch] = useState(window.location.search);
 
   useEffect(() => {
@@ -842,9 +675,9 @@ function App() {
   const hasMinutes = params.has('minutes');
 
   return hasMinutes ? (
-    <CountdownTimer search={search} onNavigateHome={navigateHome} />
+    <CountdownTimer backgroundAudio={backgroundAudio} search={search} onNavigateHome={navigateHome} />
   ) : (
-    <LandingPage onStart={navigate} />
+    <LandingPage backgroundAudio={backgroundAudio} onStart={navigate} />
   );
 }
 
