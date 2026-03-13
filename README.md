@@ -16,7 +16,9 @@ Customize the timer via query parameters:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `minutes` | Countdown duration in minutes | `5` |
+| `title`   | Main heading text shown on the timer | `COUNTDOWN` |
 | `font`    | Hosted font family loaded at runtime | `Rajdhani` |
+| `sound`   | `local-file` when a browser-selected audio file is attached | not set |
 
 ## Examples
 
@@ -102,7 +104,20 @@ http://localhost:5173/?minutes=45&font=JetBrains Mono
 
 # 10-minute timer with cyberpunk font
 http://localhost:5173/?minutes=10&font=Chakra Petch
+
+# 5-minute timer with a custom title
+http://localhost:5173/?minutes=5&title=Focus%20Sprint
 ```
+
+### Local audio file
+
+Choose an audio file from your machine before starting the timer if you want local playback during the countdown.
+
+- The file is stored in your browser so the countdown page can play it.
+- The saved file is restored when you refresh or return to the setup page in the same browser.
+- If a file is selected, the app adds `sound=local-file` to the URL.
+- The actual file is not embedded in the URL, so that link is not portable to other devices or browsers.
+- The local file loops while the countdown is running and stops when the timer ends.
 
 ## Build-time configuration
 
