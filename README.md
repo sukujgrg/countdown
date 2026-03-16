@@ -1,6 +1,6 @@
 # Countdown Timer
 
-A cyberpunk-themed countdown timer built with React, Vite, and Tailwind CSS. Features animated flip digits, glowing backgrounds, and rotating rings.
+A GSAP-native countdown lab built with React and Vite. The app now ships with a cinematic configure screen, multiple animation personalities, live typography selection, persisted browser-side configuration, and persisted local background audio.
 
 Live demo: [https://sukujgrg.github.io/countdown/](https://sukujgrg.github.io/countdown/)
 
@@ -17,14 +17,25 @@ Customize the timer via query parameters:
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `minutes` | Countdown duration in minutes | `5` |
-| `title`   | Main heading text shown on the timer | `COUNTDOWN` |
+| `minutes` | Countdown duration in minutes | `15` |
+| `messages` | Comma- or line-separated message phrases | church-themed defaults |
 | `font`    | Hosted font family loaded at runtime | `Rajdhani` |
+| `messageFx` | Message transition style | `crossfade` |
+| `style`   | GSAP animation profile | `pulse-grid` |
 | `sound`   | `local-file` when a browser-selected audio file is attached | not set |
+
+## Browser Persistence
+
+- The app saves `minutes`, `font`, `style`, `messages`, and `messageFx` in browser `localStorage`.
+- The uploaded local audio file is stored separately in `IndexedDB`.
+- On startup, the app restores the last saved config automatically when the URL has no query parameters.
+- If the URL does include query parameters, the URL takes precedence over the saved config.
+- Saved config is shared across tabs for the same site origin, and setup-screen changes sync across tabs.
+- Live countdown state is not shared across tabs. Running/paused status, remaining seconds, and current playback position stay per tab.
 
 ## Examples
 
-### Basic usage (5-minute default)
+### Basic usage
 
 ```
 http://localhost:5173/
@@ -48,7 +59,7 @@ http://localhost:5173/?minutes=90
 
 ### Hosted fonts
 
-The built-in font picker uses hosted web fonts so every visitor gets the same result. These are loaded at runtime from [Google Fonts](https://fonts.google.com/):
+The configure screen uses hosted web fonts so every visitor gets the same result. These are loaded at runtime from [Google Fonts](https://fonts.google.com/):
 
 ```
 # Orbitron - geometric, space-age
@@ -82,6 +93,24 @@ http://localhost:5173/?font=Black Ops One
 http://localhost:5173/?font=Bungee
 ```
 
+### Animation styles
+
+The countdown stage includes multiple GSAP-native motion systems:
+
+```
+# elastic neon pulses
+http://localhost:5173/?minutes=15&style=pulse-grid
+
+# rotational vault transitions
+http://localhost:5173/?minutes=15&style=orbit-vault
+
+# scanline/glitch motion
+http://localhost:5173/?minutes=15&style=glitch-scan
+
+# calm sanctuary halo
+http://localhost:5173/?minutes=15&style=sanctuary-glow
+```
+
 ### Default font
 
 ```
@@ -107,27 +136,36 @@ http://localhost:5173/?minutes=45&font=JetBrains Mono
 # 10-minute timer with cyberpunk font
 http://localhost:5173/?minutes=10&font=Chakra Petch
 
-# 5-minute timer with a custom title
-http://localhost:5173/?minutes=5&title=Focus%20Sprint
+# 25-minute timer with message sequence
+http://localhost:5173/?minutes=25&messages=Welcome,Service%20Begins%20Soon,Prepare%20Your%20Heart
+
+# 25-minute countdown with Orbit Vault motion
+http://localhost:5173/?minutes=25&style=orbit-vault
+
+# 45-minute countdown with custom font and motion
+http://localhost:5173/?minutes=45&font=Orbitron&style=glitch-scan
 ```
+
+### Message sequence
+
+The configure screen can add short church-facing lines that transform in place beneath the countdown.
+
+- Enter them as comma-separated items or one phrase per line.
+- They are saved in browser storage and restored automatically on the next visit.
+- They can also be passed through the URL with `messages=...`.
+- The transition behavior can be chosen with `messageFx=crossfade`, `word-build`, `glow-swap`, or `vertical-lift`.
 
 ### Local audio file
 
 Choose an audio file from your machine before starting the timer if you want local playback during the countdown.
 
 - The file is stored in your browser so the countdown page can play it.
+- The file is shared across tabs for the same browser profile and origin.
 - The saved file is restored when you refresh or return to the setup page in the same browser.
+- The playback object URL is recreated from the stored blob whenever the app restores the track.
 - If a file is selected, the app adds `sound=local-file` to the URL.
 - The actual file is not embedded in the URL, so that link is not portable to other devices or browsers.
 - The local file loops while the countdown is running and stops when the timer ends.
-
-## Build-time configuration
-
-Set the default minutes via the `MINUTES` environment variable at build time:
-
-```bash
-MINUTES=10 npm run build
-```
 
 ## Build
 
@@ -147,6 +185,7 @@ For the first deployment, enable GitHub Pages in the repository settings and set
 
 - React 18
 - Vite 6
+- GSAP
 - Tailwind CSS 4
 - TypeScript
 
