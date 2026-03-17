@@ -153,7 +153,7 @@ The configure screen can add short church-facing lines that transform in place b
 - Enter them as comma-separated items or one phrase per line.
 - They are saved in browser storage and restored automatically on the next visit.
 - They can also be passed through the URL with `messages=...`.
-- The transition behavior can be chosen with `messageFx=crossfade`, `word-build`, `glow-swap`, or `vertical-lift`.
+- The transition behavior can be chosen with `messageFx=crossfade`, `word-build`, `halo-fade`, `gentle-drift`, `glow-swap`, or `vertical-lift`.
 
 ### Local audio file
 

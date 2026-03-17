@@ -57,6 +57,8 @@ const fonts: FontOption[] = [
 const textAnimationOptions: TextAnimationOption[] = [
   { id: 'crossfade', label: 'Crossfade', description: 'Soft dissolve between phrases.' },
   { id: 'word-build', label: 'Word Build', description: 'Phrase lifts in with a gentle stagger.' },
+  { id: 'halo-fade', label: 'Halo Fade', description: 'A soft bloom of light around the line.' },
+  { id: 'gentle-drift', label: 'Gentle Drift', description: 'The phrase glides in with a quiet float.' },
   { id: 'glow-swap', label: 'Glow Swap', description: 'Current line dims while the next brightens.' },
   { id: 'vertical-lift', label: 'Vertical Lift', description: 'One message rises out and the next rises in.' },
 ];
@@ -340,6 +342,20 @@ function animateMessageChange(element: HTMLDivElement, textAnimation: string, ac
         element,
         { y: 14, opacity: 0.18, filter: 'blur(10px)' },
         { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.85, ease: 'power3.out' },
+      );
+      break;
+    case 'halo-fade':
+      gsap.fromTo(
+        element,
+        { opacity: 0.12, scale: 0.985, filter: 'blur(10px)', textShadow: `0 0 0 ${accent}` },
+        { opacity: 1, scale: 1, filter: 'blur(0px)', textShadow: `0 0 34px ${accent}44`, duration: 0.9, ease: 'sine.out' },
+      );
+      break;
+    case 'gentle-drift':
+      gsap.fromTo(
+        element,
+        { opacity: 0, y: 18, x: -10, filter: 'blur(8px)' },
+        { opacity: 1, y: 0, x: 0, filter: 'blur(0px)', duration: 0.86, ease: 'power2.out' },
       );
       break;
     case 'glow-swap':
@@ -794,7 +810,7 @@ function ConfigureScreen({ backgroundAudio, config, onChange, onStart }: Configu
                   Message Sequence
                 </p>
                 <textarea
-                  rows={4}
+                  rows={7}
                   maxLength={180}
                   value={config.messageSequence}
                   placeholder={DEFAULT_MESSAGE_SEQUENCE}
@@ -1081,6 +1097,12 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
   const style = getAnimationStyle(config.styleId);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const stageShellRef = useRef<HTMLDivElement | null>(null);
+  const backgroundOrbRefs = useRef<HTMLDivElement[]>([]);
+  const backgroundBeamRefs = useRef<HTMLDivElement[]>([]);
+  const cardGlowRef = useRef<HTMLDivElement | null>(null);
+  const cardPatternRef = useRef<HTMLDivElement | null>(null);
+  const cardOrbRefs = useRef<HTMLDivElement[]>([]);
+  const cardBeamRefs = useRef<HTMLDivElement[]>([]);
   const messageRef = useRef<HTMLDivElement | null>(null);
   const messageWordRefs = useRef<HTMLSpanElement[]>([]);
   const [timeLeft, setTimeLeft] = useState(config.minutes * 60);
@@ -1107,6 +1129,90 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
           repeat: -1,
           yoyo: true,
         });
+      }
+
+      backgroundOrbRefs.current.forEach((orb, index) => {
+        gsap.to(orb, {
+          x: index % 2 === 0 ? 38 : -30,
+          y: index % 2 === 0 ? -22 : 26,
+          scale: 1.08 + index * 0.06,
+          duration: 6.2 + index,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        });
+      });
+
+      backgroundBeamRefs.current.forEach((beam, index) => {
+        gsap.fromTo(
+          beam,
+          { opacity: 0.08, xPercent: index % 2 === 0 ? -10 : 8 },
+          {
+            opacity: 0.28,
+            xPercent: index % 2 === 0 ? 10 : -6,
+            duration: 5 + index * 0.7,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+          },
+        );
+      });
+
+      cardOrbRefs.current.forEach((orb, index) => {
+        gsap.to(orb, {
+          x: index % 2 === 0 ? 22 : -18,
+          y: index % 2 === 0 ? -14 : 18,
+          scale: 1.1 + index * 0.04,
+          duration: 5.4 + index * 0.6,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        });
+      });
+
+      cardBeamRefs.current.forEach((beam, index) => {
+        gsap.fromTo(
+          beam,
+          { opacity: 0.12, xPercent: index % 2 === 0 ? -6 : 6 },
+          {
+            opacity: 0.34,
+            xPercent: index % 2 === 0 ? 6 : -4,
+            duration: 4.6 + index * 0.5,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+          },
+        );
+      });
+
+      if (cardGlowRef.current) {
+        gsap.to(cardGlowRef.current, {
+          rotate: 360,
+          duration: 24,
+          ease: 'none',
+          repeat: -1,
+        });
+        gsap.to(cardGlowRef.current, {
+          scale: 1.08,
+          duration: 7.2,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        });
+      }
+
+      if (cardPatternRef.current) {
+        gsap.fromTo(
+          cardPatternRef.current,
+          { backgroundPosition: '0% 0%, 100% 0%, 50% 0%' },
+          {
+            backgroundPosition: '100% 20%, 0% 100%, 50% 100%',
+            duration: 14,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+          },
+        );
       }
     }, rootRef);
 
@@ -1205,6 +1311,35 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
   return (
     <div ref={rootRef} className="min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8" style={{ background: style.background }}>
       <div ref={stageShellRef} className="relative mx-auto flex min-h-[calc(100vh-3rem)] max-w-7xl flex-col rounded-[2rem] border border-white/10 p-4 sm:p-6" style={{ background: style.shell, backdropFilter: 'blur(24px)' }}>
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+          {[0, 1].map((index) => (
+            <div
+              key={`stage-orb-${index}`}
+              ref={(node) => setArrayRef(backgroundOrbRefs, index, node)}
+              className="absolute rounded-full blur-3xl"
+              style={{
+                background: index === 0 ? `${style.accent}22` : `${style.secondary}18`,
+                height: index === 0 ? 280 : 220,
+                left: index === 0 ? '8%' : '72%',
+                top: index === 0 ? '14%' : '62%',
+                width: index === 0 ? 280 : 220,
+              }}
+            />
+          ))}
+          {[0, 1].map((index) => (
+            <div
+              key={`stage-beam-${index}`}
+              ref={(node) => setArrayRef(backgroundBeamRefs, index, node)}
+              className="absolute h-px"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${index === 0 ? style.accent : style.tertiary}, transparent)`,
+                left: '12%',
+                top: `${24 + index * 42}%`,
+                width: '76%',
+              }}
+            />
+          ))}
+        </div>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <button
             type="button"
@@ -1248,6 +1383,53 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
           <div className="relative w-full max-w-[68rem] overflow-visible">
             <div className="absolute inset-0 rounded-[2rem] bg-white/5 blur-2xl" />
             <div className="relative w-full overflow-hidden rounded-[2rem] border border-white/10 p-4 sm:p-6" style={{ background: style.surface }}>
+              <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+                <div
+                  ref={cardPatternRef}
+                  className="absolute inset-0 opacity-55"
+                  style={{
+                    backgroundImage: `radial-gradient(circle at 20% 22%, ${style.accent}30 0%, transparent 32%), radial-gradient(circle at 78% 68%, ${style.secondary}24 0%, transparent 30%), repeating-linear-gradient(135deg, transparent 0 22px, ${style.tertiary}12 22px 24px, transparent 24px 48px)`,
+                    backgroundSize: '140% 140%, 140% 140%, 180px 180px',
+                    mixBlendMode: 'screen',
+                  }}
+                />
+                <div
+                  ref={cardGlowRef}
+                  className="absolute inset-[-18%] opacity-45"
+                  style={{
+                    background: `conic-gradient(from 0deg, transparent 0deg, ${style.accent}18 72deg, transparent 140deg, ${style.secondary}20 220deg, transparent 300deg, ${style.tertiary}18 360deg)`,
+                    filter: 'blur(34px)',
+                    mixBlendMode: 'screen',
+                  }}
+                />
+                {[0, 1].map((index) => (
+                  <div
+                    key={`card-orb-${index}`}
+                    ref={(node) => setArrayRef(cardOrbRefs, index, node)}
+                    className="absolute rounded-full blur-3xl"
+                    style={{
+                      background: index === 0 ? `${style.accent}42` : `${style.tertiary}34`,
+                      height: index === 0 ? 320 : 260,
+                      left: index === 0 ? '10%' : '62%',
+                      top: index === 0 ? '12%' : '50%',
+                      width: index === 0 ? 320 : 260,
+                    }}
+                  />
+                ))}
+                {[0, 1, 2].map((index) => (
+                  <div
+                    key={`card-beam-${index}`}
+                    ref={(node) => setArrayRef(cardBeamRefs, index, node)}
+                    className="absolute h-[2px]"
+                    style={{
+                      background: `linear-gradient(90deg, transparent, ${index === 1 ? style.secondary : style.accent}, transparent)`,
+                      left: '10%',
+                      top: `${28 + index * 18}%`,
+                      width: '80%',
+                    }}
+                  />
+                ))}
+              </div>
               <div className="relative flex flex-col items-center gap-6">
                 {renderCountdownFace(config, style, timeLeft)}
                 {activeMessage && (
@@ -1255,7 +1437,7 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
                     <div
                       key={messageAnimationKey}
                       ref={messageRef}
-                      className="text-center text-xl text-white sm:text-2xl"
+                      className="text-center text-2xl text-white sm:text-3xl"
                       style={{
                         ...getFontStyle(config.font),
                         fontWeight: 700,
