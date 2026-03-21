@@ -145,15 +145,15 @@ function getDigitFontStyle(fontFamily: string) {
 function getClockFontTuning(fontFamily: string) {
   switch (fontFamily) {
     case 'Audiowide':
-      return { letterSpacing: '0.02em', scale: 0.86, width: '6.2ch' };
+      return { letterSpacing: '0.02em', scale: 0.86, width: 'min(100%, 6.45ch)' };
     case 'Michroma':
-      return { letterSpacing: '0.03em', scale: 0.88, width: '6.2ch' };
+      return { letterSpacing: '0.03em', scale: 0.88, width: 'min(100%, 6.35ch)' };
     case 'Press Start 2P':
-      return { letterSpacing: '0.01em', scale: 0.74, width: '6.4ch' };
+      return { letterSpacing: '0.01em', scale: 0.74, width: 'min(100%, 6.5ch)' };
     case 'Black Ops One':
-      return { letterSpacing: '0.04em', scale: 0.9, width: '6.2ch' };
+      return { letterSpacing: '0.04em', scale: 0.9, width: 'min(100%, 6.3ch)' };
     default:
-      return { letterSpacing: null, scale: 1, width: '6.2ch' };
+      return { letterSpacing: null, scale: 1, width: 'min(100%, 6.2ch)' };
   }
 }
 
@@ -386,7 +386,7 @@ function renderCountdownFace(config: CountdownConfig, style: AnimationStyle, tim
       return (
         <div className="flex w-full justify-center">
           <div
-            className="relative flex aspect-square w-full max-w-[36rem] items-center justify-center rounded-full border border-white/10"
+            className="relative flex aspect-square w-full max-w-[21rem] items-center justify-center rounded-full border border-white/10 sm:max-w-[36rem]"
             style={{
               background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), rgba(255,255,255,0.02) 58%, rgba(0,0,0,0.12) 100%)',
               boxShadow: `inset 0 0 0 1px ${style.accent}22, 0 0 40px ${style.secondary}18`,
@@ -395,15 +395,15 @@ function renderCountdownFace(config: CountdownConfig, style: AnimationStyle, tim
             <div className="absolute inset-6 rounded-full border" style={{ borderColor: `${style.accent}33` }} />
             <div className="absolute inset-14 rounded-full border" style={{ borderColor: `${style.tertiary}22` }} />
             <div
-              className="absolute left-1/2 top-5 h-14 w-1.5 -translate-x-1/2 rounded-full"
+              className="absolute left-1/2 top-4 h-10 w-1.5 -translate-x-1/2 rounded-full sm:top-5 sm:h-14"
               style={{ background: style.accent, boxShadow: `0 0 18px ${style.accent}` }}
             />
             <div
-              className="relative z-10 text-7xl leading-none sm:text-8xl lg:text-[8.8rem]"
+              className="relative z-10 text-[clamp(3.1rem,17vw,8.8rem)] leading-none"
               style={{
                 ...getClockTextStyle(config.font, style.accent),
                 fontWeight: 800,
-                letterSpacing: '0.12em',
+                letterSpacing: '0.08em',
               }}
             >
               {clock}
@@ -414,7 +414,7 @@ function renderCountdownFace(config: CountdownConfig, style: AnimationStyle, tim
     case 'glitch-scan':
       return (
         <div
-          className="relative w-full overflow-hidden rounded-[1.8rem] border border-white/10 px-6 py-10 sm:px-10 sm:py-12"
+          className="relative w-full overflow-hidden rounded-[1.5rem] border border-white/10 px-4 py-8 sm:rounded-[1.8rem] sm:px-10 sm:py-12"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))',
             boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1), 0 0 28px ${style.secondary}18`,
@@ -436,9 +436,9 @@ function renderCountdownFace(config: CountdownConfig, style: AnimationStyle, tim
               className="relative z-10 text-center"
               style={{
                 ...getClockTextStyle(config.font, style.accent),
-                fontSize: 'clamp(4.75rem, 12vw, 10rem)',
+                fontSize: 'clamp(3.1rem, 16vw, 10rem)',
                 fontWeight: 900,
-                letterSpacing: '0.1em',
+                letterSpacing: '0.07em',
                 textShadow: `2px 0 0 ${style.secondary}55, -2px 0 0 ${style.accent}44, 0 0 20px ${style.accent}55`,
               }}
             >
@@ -451,7 +451,7 @@ function renderCountdownFace(config: CountdownConfig, style: AnimationStyle, tim
       return (
         <div className="flex w-full justify-center">
           <div
-            className="relative w-full max-w-[62rem] overflow-hidden rounded-[2rem] border border-white/10 px-6 py-10 sm:px-10 sm:py-12"
+            className="relative w-full max-w-[62rem] overflow-hidden rounded-[1.5rem] border border-white/10 px-4 py-8 sm:rounded-[2rem] sm:px-10 sm:py-12"
             style={{
               background: 'linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04) 44%, rgba(0,0,0,0.16) 100%)',
               boxShadow: `inset 0 1px 0 rgba(255,255,255,0.14), 0 0 28px ${style.accent}16`,
@@ -478,13 +478,13 @@ function renderCountdownFace(config: CountdownConfig, style: AnimationStyle, tim
                 clipPath: 'polygon(48% 0%, 52% 0%, 100% 100%, 0% 100%)',
               }}
             />
-            <div className="relative z-10 flex min-h-[20rem] items-center justify-center pt-10 sm:min-h-[24rem]">
+            <div className="relative z-10 flex min-h-[11rem] items-center justify-center pt-6 sm:min-h-[24rem] sm:pt-10">
               <div
-                className="text-center text-8xl leading-none sm:text-[7rem] lg:text-[10rem]"
+                className="text-center text-[clamp(3.15rem,17vw,10rem)] leading-none"
                 style={{
                   ...getClockTextStyle(config.font, style.accent),
                   fontWeight: 900,
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.06em',
                   textShadow: `0 0 30px ${style.accent}44, 0 0 54px ${style.tertiary}18`,
                 }}
               >
@@ -497,7 +497,7 @@ function renderCountdownFace(config: CountdownConfig, style: AnimationStyle, tim
     default:
       return (
         <div
-          className="relative z-10 flex w-full flex-col items-center rounded-[1.8rem] border border-white/10 px-6 py-12 sm:px-12 sm:py-16"
+          className="relative z-10 flex w-full flex-col items-center rounded-[1.5rem] border border-white/10 px-4 py-8 sm:rounded-[1.8rem] sm:px-12 sm:py-16"
           style={{
             background: 'linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))',
             boxShadow: `inset 0 1px 0 rgba(255,255,255,0.14), 0 0 24px ${style.accent}18`,
@@ -512,11 +512,11 @@ function renderCountdownFace(config: CountdownConfig, style: AnimationStyle, tim
             }}
           />
           <div
-            className="relative z-10 text-center text-8xl leading-none sm:text-[7rem] lg:text-[10rem]"
+            className="relative z-10 text-center text-[clamp(3.1rem,17vw,10rem)] leading-none"
             style={{
               ...getClockTextStyle(config.font, style.accent),
               fontWeight: 800,
-              letterSpacing: '0.1em',
+              letterSpacing: '0.07em',
             }}
           >
             {clock}
@@ -696,7 +696,7 @@ function ConfigureScreen({ backgroundAudio, config, onChange, onStart }: Configu
   };
 
   return (
-    <div ref={rootRef} className="min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8" style={{ background: style.background }}>
+    <div ref={rootRef} className="min-h-screen overflow-hidden px-3 py-4 sm:px-6 sm:py-6 lg:px-8" style={{ background: style.background }}>
       <div className="pointer-events-none absolute inset-0">
         {[0, 1, 2].map((index) => (
           <div
@@ -729,16 +729,16 @@ function ConfigureScreen({ backgroundAudio, config, onChange, onStart }: Configu
 
       <div
         ref={shellRef}
-        className="relative mx-auto max-w-7xl rounded-[2rem] border border-white/10 p-6 sm:p-8"
+        className="relative mx-auto max-w-7xl rounded-[1.5rem] border border-white/10 p-4 sm:rounded-[2rem] sm:p-8"
         style={{ background: style.shell, backdropFilter: 'blur(24px)' }}
       >
-        <div ref={heroRef} className="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+        <div ref={heroRef} className="mb-6 grid gap-4 sm:mb-8 sm:gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-[0.6em] text-white/45" style={getFontStyle(DEFAULT_CONFIG.font)}>
               GSAP Native Countdown Lab
             </p>
             <h1
-              className="text-5xl leading-none text-white sm:text-6xl lg:text-7xl"
+              className="text-4xl leading-none text-white sm:text-6xl lg:text-7xl"
               style={{ ...getFontStyle(config.font), textShadow: `0 0 32px ${style.accent}44`, fontWeight: 800 }}
             >
               Countdown
@@ -765,7 +765,7 @@ function ConfigureScreen({ backgroundAudio, config, onChange, onStart }: Configu
                 <p className="mb-4 text-xs uppercase tracking-[0.35em] text-white/42" style={getFontStyle(DEFAULT_CONFIG.font)}>
                   Duration
                 </p>
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {durationPresets.map((preset) => (
                     <button
                       key={preset}
@@ -804,7 +804,7 @@ function ConfigureScreen({ backgroundAudio, config, onChange, onStart }: Configu
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
+            <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
               <div className="rounded-[1.5rem] border border-white/10 p-5" style={{ background: style.surface }}>
                 <p className="mb-4 text-xs uppercase tracking-[0.35em] text-white/42" style={getFontStyle(DEFAULT_CONFIG.font)}>
                   Message Sequence
@@ -836,7 +836,7 @@ function ConfigureScreen({ backgroundAudio, config, onChange, onStart }: Configu
                         key={option.id}
                         type="button"
                         onClick={() => onChange({ ...config, textAnimation: option.id })}
-                        className="rounded-full border px-3 py-2 text-xs transition-all"
+                        className="rounded-full border px-3 py-2 text-[11px] transition-all sm:text-xs"
                         style={{
                           ...getFontStyle(DEFAULT_CONFIG.font),
                           background: isActive ? `linear-gradient(135deg, ${style.accent}22, ${style.secondary}18)` : 'rgba(255,255,255,0.04)',
@@ -867,7 +867,7 @@ function ConfigureScreen({ backgroundAudio, config, onChange, onStart }: Configu
             </div>
 
             <div className="rounded-[1.5rem] border border-white/10 p-5" style={{ background: style.surface }}>
-              <div className="mb-4 flex items-end justify-between gap-4">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.35em] text-white/42" style={getFontStyle(DEFAULT_CONFIG.font)}>
                     Animation Styles
@@ -923,7 +923,7 @@ function ConfigureScreen({ backgroundAudio, config, onChange, onStart }: Configu
             </div>
 
             <div className="rounded-[1.5rem] border border-white/10 p-5" style={{ background: style.surface }}>
-              <div className="mb-4 flex items-end justify-between gap-4">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.35em] text-white/42" style={getFontStyle(DEFAULT_CONFIG.font)}>
                     Typeface Engine
@@ -1309,9 +1309,9 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
   };
 
   return (
-    <div ref={rootRef} className="min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8" style={{ background: style.background }}>
-      <div ref={stageShellRef} className="relative mx-auto flex min-h-[calc(100vh-3rem)] max-w-7xl flex-col rounded-[2rem] border border-white/10 p-4 sm:p-6" style={{ background: style.shell, backdropFilter: 'blur(24px)' }}>
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+    <div ref={rootRef} className="min-h-screen overflow-hidden px-3 py-4 sm:px-6 sm:py-6 lg:px-8" style={{ background: style.background }}>
+      <div ref={stageShellRef} className="relative mx-auto flex min-h-[calc(100dvh-2rem)] max-w-7xl flex-col rounded-[1.5rem] border border-white/10 p-3 sm:min-h-[calc(100vh-3rem)] sm:rounded-[2rem] sm:p-6" style={{ background: style.shell, backdropFilter: 'blur(24px)' }}>
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
           {[0, 1].map((index) => (
             <div
               key={`stage-orb-${index}`}
@@ -1340,50 +1340,11 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
             />
           ))}
         </div>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              backgroundAudio.pause(true);
-              onBack();
-            }}
-            aria-label="Reconfigure"
-            title="Reconfigure"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/72 transition-all hover:border-white/20 hover:bg-white/10"
-            style={getFontStyle(DEFAULT_CONFIG.font)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => setIsActive((value) => !value)}
-              aria-label={isActive ? 'Pause' : 'Resume'}
-              title={isActive ? 'Pause' : 'Resume'}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/78 transition-all hover:border-white/20 hover:bg-white/10"
-              style={getFontStyle(DEFAULT_CONFIG.font)}
-            >
-              {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            </button>
-            <button
-              type="button"
-              onClick={handleReset}
-              aria-label="Reset"
-              title="Reset"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/78 transition-all hover:border-white/20 hover:bg-white/10"
-              style={getFontStyle(DEFAULT_CONFIG.font)}
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-10 flex flex-1 items-center justify-center">
+        <div className="flex flex-1 items-center justify-center">
           <div className="relative w-full max-w-[68rem] overflow-visible">
             <div className="absolute inset-0 rounded-[2rem] bg-white/5 blur-2xl" />
-            <div className="relative w-full overflow-hidden rounded-[2rem] border border-white/10 p-4 sm:p-6" style={{ background: style.surface }}>
-              <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+            <div className="relative w-full overflow-hidden rounded-[1.5rem] border border-white/10 p-3 sm:rounded-[2rem] sm:p-6" style={{ background: style.surface }}>
+              <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
                 <div
                   ref={cardPatternRef}
                   className="absolute inset-0 opacity-55"
@@ -1430,14 +1391,14 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
                   />
                 ))}
               </div>
-              <div className="relative flex flex-col items-center gap-6">
+              <div className="relative flex flex-col items-center gap-4 sm:gap-6">
                 {renderCountdownFace(config, style, timeLeft)}
                 {activeMessage && (
-                  <div className="flex min-h-20 w-full items-center justify-center rounded-[1.4rem] border border-white/10 bg-white/4 px-6 py-4 sm:min-h-24">
+                  <div className="flex min-h-16 w-full items-center justify-center rounded-[1.2rem] border border-white/10 bg-white/4 px-4 py-4 sm:min-h-24 sm:rounded-[1.4rem] sm:px-6">
                     <div
                       key={messageAnimationKey}
                       ref={messageRef}
-                      className="text-center text-2xl text-white sm:text-3xl"
+                      className="text-center text-xl text-white sm:text-3xl"
                       style={{
                         ...getFontStyle(config.font),
                         fontWeight: 700,
@@ -1462,6 +1423,48 @@ function CountdownStage({ backgroundAudio, config, onBack }: CountdownStageProps
               </div>
             </div>
           </div>
+        </div>
+
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-3 flex items-end justify-between px-3 sm:bottom-6 sm:px-6">
+        <div className="pointer-events-auto">
+          <button
+            type="button"
+            onClick={() => {
+              backgroundAudio.pause(true);
+              onBack();
+            }}
+            aria-label="Reconfigure"
+            title="Reconfigure"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/18 text-white/40 backdrop-blur-md transition-all hover:border-white/18 hover:bg-black/28 hover:text-white/68"
+            style={getFontStyle(DEFAULT_CONFIG.font)}
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        <div className="pointer-events-auto flex gap-2">
+          <button
+            type="button"
+            onClick={() => setIsActive((value) => !value)}
+            aria-label={isActive ? 'Pause' : 'Resume'}
+            title={isActive ? 'Pause' : 'Resume'}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/18 text-white/40 backdrop-blur-md transition-all hover:border-white/18 hover:bg-black/28 hover:text-white/68"
+            style={getFontStyle(DEFAULT_CONFIG.font)}
+          >
+            {isActive ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            aria-label="Reset"
+            title="Reset"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/18 text-white/40 backdrop-blur-md transition-all hover:border-white/18 hover:bg-black/28 hover:text-white/68"
+            style={getFontStyle(DEFAULT_CONFIG.font)}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </div>
